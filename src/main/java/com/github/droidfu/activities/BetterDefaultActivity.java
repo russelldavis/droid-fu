@@ -24,7 +24,6 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
-import android.view.KeyEvent;
 
 import com.github.droidfu.DroidFuApplication;
 import com.github.droidfu.dialogs.DialogClickListener;
@@ -134,11 +133,28 @@ public class BetterDefaultActivity extends Activity implements BetterActivity {
             getString(messageResourceId), android.R.drawable.ic_dialog_info);
     }
 
+    public AlertDialog newAlertDialog(String title, String message,
+          OnClickListener listener) {
+      return BetterActivityHelper.newMessageDialog(this, title,
+          message, android.R.drawable.ic_dialog_alert, listener);
+    }
+
+    public AlertDialog newAlertDialog(String title, String message) {
+      return BetterActivityHelper.newMessageDialog(this, title,
+          message, android.R.drawable.ic_dialog_alert);
+    }
+    
     public AlertDialog newAlertDialog(int titleResourceId, int messageResourceId) {
         return BetterActivityHelper.newMessageDialog(this, getString(titleResourceId),
             getString(messageResourceId), android.R.drawable.ic_dialog_alert);
     }
 
+    public AlertDialog newAlertDialog(int titleResourceId, int messageResourceId,
+          OnClickListener listener) {
+      return BetterActivityHelper.newMessageDialog(this, getString(titleResourceId),
+          getString(messageResourceId), android.R.drawable.ic_dialog_alert, listener);
+    }
+    
     public AlertDialog newErrorHandlerDialog(int titleResourceId, Exception error) {
         return BetterActivityHelper.newErrorHandlerDialog(this, getString(titleResourceId), error);
     }
@@ -152,11 +168,5 @@ public class BetterDefaultActivity extends Activity implements BetterActivity {
             DialogClickListener<T> listener,
             boolean closeOnSelect) {
         return BetterActivityHelper.newListDialog(this, title, elements, listener, closeOnSelect);
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        BetterActivityHelper.handleApplicationClosing(this, keyCode);
-        return super.onKeyDown(keyCode, event);
     }
 }
