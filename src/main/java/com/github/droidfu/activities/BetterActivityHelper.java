@@ -131,16 +131,17 @@ public class BetterActivityHelper {
      * @param dialogTitle
      * @param screenMessage
      * @param iconResourceId
+     * @param listener
      * @return
      */
     public static AlertDialog newMessageDialog(final Context context, String dialogTitle,
-            String screenMessage, int iconResourceId) {
+            String screenMessage, int iconResourceId, final OnClickListener listener) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setCancelable(false);
         builder.setPositiveButton("Okay", new OnClickListener() {
-
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
+                if (listener != null)
+                  listener.onClick(dialog, which);
             }
         });
 
@@ -151,6 +152,20 @@ public class BetterActivityHelper {
         return builder.create();
     }
 
+    /**
+     * Creates a new AlertDialog to display a simple message
+     * 
+     * @param context
+     * @param dialogTitle
+     * @param screenMessage
+     * @param iconResourceId
+     * @return
+     */
+    public static AlertDialog newMessageDialog(final Context context, String dialogTitle,
+            String screenMessage, int iconResourceId) {
+      return newMessageDialog(context, dialogTitle, screenMessage, iconResourceId, null);
+    }
+    
     /**
      * Displays a error dialog with an exception as its body. Also displays a Send Email button to
      * send the exception to the developer. Implement the following resource IDs
