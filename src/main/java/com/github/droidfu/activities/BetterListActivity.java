@@ -23,7 +23,6 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
-import android.view.KeyEvent;
 import android.widget.ListAdapter;
 
 import com.github.droidfu.DroidFuApplication;
@@ -167,11 +166,5 @@ public class BetterListActivity extends ListActivity implements BetterActivity {
     public <T> Dialog newListDialog(String title, List<T> elements,
             DialogClickListener<T> listener, boolean closeOnSelect) {
         return BetterActivityHelper.newListDialog(this, title, elements, listener, closeOnSelect);
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        BetterActivityHelper.handleApplicationClosing(this, keyCode);
-        return super.onKeyDown(keyCode, event);
     }
 }
