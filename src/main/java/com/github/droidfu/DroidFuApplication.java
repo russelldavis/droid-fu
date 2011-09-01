@@ -18,13 +18,26 @@ package com.github.droidfu;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 
+import com.github.droidfu.http.BetterHttp;
+
 import android.app.Application;
 import android.content.Context;
 
 public class DroidFuApplication extends Application {
 
     private HashMap<String, WeakReference<Context>> contextObjects = new HashMap<String, WeakReference<Context>>();
+    protected static DroidFuApplication app;
 
+    @Override public void onCreate() {
+        super.onCreate();
+        app = this;
+        BetterHttp.setContext(this);
+    }
+    
+    public static DroidFuApplication get() {
+        return app;
+    }
+    
     public synchronized Context getActiveContext(String className) {
         WeakReference<Context> ref = contextObjects.get(className);
         if (ref == null) {
