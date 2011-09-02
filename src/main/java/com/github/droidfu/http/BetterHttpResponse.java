@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.http.HttpResponse;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public interface BetterHttpResponse {
 
@@ -30,6 +32,8 @@ public interface BetterHttpResponse {
 
     public String getResponseBodyAsString() throws IOException;
 
+    public JSONObject getResponseBodyAsJson() throws IOException, JSONException;
+    
     public int getStatusCode();
 
     public String getHeader(String header);

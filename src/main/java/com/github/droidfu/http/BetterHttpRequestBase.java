@@ -16,19 +16,28 @@
 package com.github.droidfu.http;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.impl.client.AbstractHttpClient;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.json.JSONObject;
 
 import android.util.Log;
 
@@ -53,6 +62,15 @@ public abstract class BetterHttpRequestBase implements BetterHttpRequest,
     private int oldTimeout; // used to cache the global timeout when changing it for one request
 
     private int executionCount;
+    
+    protected List<Header> headers;
+    
+    protected List<RequestCustomizer> customizers;
+    
+    protected String charset = null;
+    
+    protected Boolean followRedirects;
+    
 
     BetterHttpRequestBase(AbstractHttpClient httpClient) {
         this.httpClient = httpClient;
@@ -89,10 +107,10 @@ public abstract class BetterHttpRequestBase implements BetterHttpRequest,
         return this;
     }
 
-    public BetterHttpResponse send() throws ConnectException {
-
+    public BetterHttpResponse send() throws IOException {
+        prepareRequest();
+      
         BetterHttpRequestRetryHandler retryHandler = new BetterHttpRequestRetryHandler(maxRetries);
-
         // tell HttpClient to user our own retry handler
         httpClient.setHttpRequestRetryHandler(retryHandler);
 
@@ -108,6 +126,7 @@ public abstract class BetterHttpRequestBase implements BetterHttpRequest,
         IOException cause = null;
         while (retry) {
             try {
+                Log.d(BetterHttp.LOG_TAG, "Sending HTTP request to " + request.getURI());
                 return httpClient.execute(request, this, context);
             } catch (IOException e) {
                 cause = e;
@@ -141,9 +160,12 @@ public abstract class BetterHttpRequestBase implements BetterHttpRequest,
 
     public BetterHttpResponse handleResponse(HttpResponse response) throws IOException {
         int status = response.getStatusLine().getStatusCode();
-        if (expectedStatusCodes != null && !expectedStatusCodes.isEmpty()
-                && !expectedStatusCodes.contains(status)) {
+        if (expectedStatusCodes != null && !expectedStatusCodes.isEmpty()) {
+          if (!expectedStatusCodes.contains(status)) {
             throw new HttpResponseException(status, "Unexpected status code: " + status);
+          }
+        } else if (status >= 400) { // TODO - Make this configurable & compatible with the old default droid-fu behavior
+          throw new HttpResponseException(status, "Error status code: " + status);
         }
 
         BetterHttpResponse bhttpr = new BetterHttpResponseImpl(response);
@@ -154,4 +176,97 @@ public abstract class BetterHttpRequestBase implements BetterHttpRequest,
         }
         return bhttpr;
     }
+    
+    public BetterHttpRequest entity(final HttpEntity entity) {
+        throw new UnsupportedOperationException(
+                "This HTTP-method doesn't support to add an entity.");
+    }
+
+    public BetterHttpRequest json(JSONObject json) throws UnsupportedEncodingException {
+        throw new UnsupportedOperationException(
+                "This HTTP-method doesn't support to add an entity.");
+    }
+    
+    public BetterHttpRequest data(final NameValuePair ... data) {
+        throw new UnsupportedOperationException(
+                "This HTTP-method doesn't support to add data.");
+    }
+
+    public BetterHttpRequest data(final String name, final String value) {
+        throw new UnsupportedOperationException(
+                "This HTTP-method doesn't support to add data.");
+    }
+
+    public BetterHttpRequest data(final Map<?, ?> data) {
+        throw new UnsupportedOperationException(
+                "This HTTP-method doesn't support to add data.");
+    }
+    
+    public BetterHttpRequest customize(final RequestCustomizer customizer) {
+      getCustomizers().add(customizer);
+      return this;
+    }
+
+    public BetterHttpRequest header(final String name, final String value) {
+      getHeaders().add(new BasicHeader(name, value));
+      return this;
+    }
+    
+    public BetterHttpRequest header(final Header header) {
+      getHeaders().add(header);
+      return this;
+    }
+
+    public BetterHttpRequest charset(final String charset) {
+      this.charset = charset;
+      return this;
+    }
+
+    public BetterHttpRequest followRedirects(final boolean follow) {
+      followRedirects = follow;
+      return this;
+    }
+    
+    protected List<Header> getHeaders() {
+      if (headers == null) {
+        headers = new ArrayList<Header>();
+      }
+      return headers;
+    }
+    
+    protected List<RequestCustomizer> getCustomizers() {
+      if (customizers == null) {
+        customizers = new ArrayList<RequestCustomizer>();
+      }
+      return customizers;
+    }
+    
+    protected AbstractHttpClient getClient() {
+      return httpClient;
+    }
+
+    protected void prepareRequest() throws IOException {
+      applyHeaders(request);
+      if (followRedirects != null) {
+        HttpClientParams.setRedirecting(request.getParams(), followRedirects);
+      }
+      applyCustomizers(request);
+    }
+    
+    private void applyHeaders(final HttpRequest request) {
+      if (headers != null) {
+        for (final Header h : headers) {
+          request.setHeader(h);
+        }
+      }
+    }
+    
+    private void applyCustomizers(final HttpUriRequest request) {
+      if (customizers != null) {
+        for (final RequestCustomizer modifier : customizers) {
+          modifier.customize(request);
+        }
+      }
+    }
+    
 }

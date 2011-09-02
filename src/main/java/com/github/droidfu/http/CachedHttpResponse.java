@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.http.HttpResponse;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.github.droidfu.cachefu.HttpResponseCache;
 
@@ -58,6 +60,10 @@ public class CachedHttpResponse implements BetterHttpResponse {
         return new String(cachedData.responseBody);
     }
 
+    public JSONObject getResponseBodyAsJson() throws IOException, JSONException {
+      return new JSONObject(getResponseBodyAsString());
+    }
+    
     public int getStatusCode() {
         return cachedData.statusCode;
     }

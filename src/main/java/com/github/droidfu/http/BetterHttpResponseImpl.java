@@ -22,11 +22,14 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class BetterHttpResponseImpl implements BetterHttpResponse {
 
     private HttpResponse response;
     private HttpEntity entity;
+    private JSONObject responseJson;
 
     public BetterHttpResponseImpl(HttpResponse response) throws IOException {
         this.response = response;
@@ -52,6 +55,13 @@ public class BetterHttpResponseImpl implements BetterHttpResponse {
         return EntityUtils.toString(entity);
     }
 
+    public JSONObject getResponseBodyAsJson() throws IOException, JSONException {
+        if (responseJson == null) {
+          responseJson = new JSONObject(getResponseBodyAsString());
+        }
+        return responseJson;
+    }
+    
     public int getStatusCode() {
         return this.response.getStatusLine().getStatusCode();
     }
