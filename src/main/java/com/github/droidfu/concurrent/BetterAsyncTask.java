@@ -179,7 +179,7 @@ public abstract class BetterAsyncTask<ParameterT, ProgressT, ReturnT> extends
      * @param context The most recent instance of the Context that executed this BetterAsyncTask
      * @param error The thrown exception.
      */
-    protected abstract void handleError(Context context, Exception error);
+    protected abstract void handleError(Context context, Exception e);
 
     @Override
     protected final void onPostExecute(ReturnT result) {
