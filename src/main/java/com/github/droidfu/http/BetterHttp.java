@@ -117,8 +117,8 @@ public class BetterHttp {
      * app}.
      */
     public static void enableGZIPEncoding() {
-        httpClient.addRequestInterceptor(new GZIPHttpRequestInterceptor());
-        httpClient.addResponseInterceptor(new GZIPHttpResponseInterceptor());
+        getHttpClient().addRequestInterceptor(new GZIPHttpRequestInterceptor());
+        getHttpClient().addResponseInterceptor(new GZIPHttpResponseInterceptor());
     }
 
     /**
@@ -159,6 +159,9 @@ public class BetterHttp {
     }
 
     public static AbstractHttpClient getHttpClient() {
+        if (httpClient == null) {
+          setupHttpClient();
+        }
         return httpClient;
     }
 
@@ -166,7 +169,7 @@ public class BetterHttp {
         if (appContext == null) {
             return;
         }
-        HttpParams httpParams = httpClient.getParams();
+        HttpParams httpParams = getHttpClient().getParams();
         ConnectivityManager connectivity = (ConnectivityManager) appContext
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo nwInfo = connectivity.getActiveNetworkInfo();
@@ -202,27 +205,27 @@ public class BetterHttp {
         if (cached && responseCache != null && responseCache.containsKey(url)) {
             return new CachedHttpRequest(url);
         }
-        return new HttpGet(httpClient, url, defaultHeaders);
+        return new HttpGet(getHttpClient(), url, defaultHeaders);
     }
 
     public static BetterHttpRequest post(String url) {
-        return new HttpPost(httpClient, url, defaultHeaders);
+        return new HttpPost(getHttpClient(), url, defaultHeaders);
     }
 
     public static BetterHttpRequest post(String url, HttpEntity payload) {
-        return new HttpPost(httpClient, url, payload, defaultHeaders);
+        return new HttpPost(getHttpClient(), url, payload, defaultHeaders);
     }
 
     public static BetterHttpRequest put(String url) {
-        return new HttpPut(httpClient, url, defaultHeaders);
+        return new HttpPut(getHttpClient(), url, defaultHeaders);
     }
 
     public static BetterHttpRequest put(String url, HttpEntity payload) {
-        return new HttpPut(httpClient, url, payload, defaultHeaders);
+        return new HttpPut(getHttpClient(), url, payload, defaultHeaders);
     }
 
     public static BetterHttpRequest delete(String url) {
-        return new HttpDelete(httpClient, url, defaultHeaders);
+        return new HttpDelete(getHttpClient(), url, defaultHeaders);
     }
 
     public static void setMaximumConnections(int maxConnections) {
@@ -238,7 +241,7 @@ public class BetterHttp {
      */
     public static void setSocketTimeout(int socketTimeout) {
         BetterHttp.socketTimeout = socketTimeout;
-        HttpConnectionParams.setSoTimeout(httpClient.getParams(), socketTimeout);
+        HttpConnectionParams.setSoTimeout(getHttpClient().getParams(), socketTimeout);
     }
 
     public static int getSocketTimeout() {
@@ -253,6 +256,10 @@ public class BetterHttp {
         return defaultHeaders;
     }
 
+    public static Context getAppContext() {
+      return appContext;
+    }
+    
     public static void setContext(Context context) {
         if (appContext != null) {
             return;
@@ -264,12 +271,12 @@ public class BetterHttp {
 
     public static void setPortForScheme(String scheme, int port) {
         Scheme _scheme = new Scheme(scheme, PlainSocketFactory.getSocketFactory(), port);
-        httpClient.getConnectionManager().getSchemeRegistry().register(_scheme);
+        getHttpClient().getConnectionManager().getSchemeRegistry().register(_scheme);
     }
 
     public static void setUserAgent(String userAgent) {
         BetterHttp.httpUserAgent = userAgent;
-        HttpProtocolParams.setUserAgent(httpClient.getParams(), userAgent);
+        HttpProtocolParams.setUserAgent(getHttpClient().getParams(), userAgent);
     }
 
     /**
